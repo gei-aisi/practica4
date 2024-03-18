@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: aisi2223.k8s.es
+  - host: xxx
     http:
       paths:
       - path: /apache

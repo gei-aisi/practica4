@@ -1,6 +1,0 @@
----
-- hosts: cluster
-
-- import_playbook: k8s-common.yml
-- import_playbook: k8s-masters.yml  
-- import_playbook: k8s-workers.yml

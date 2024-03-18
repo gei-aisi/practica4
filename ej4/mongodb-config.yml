@@ -2,6 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mongodb-config
-  namespace: aisi2223
+  namespace: aisi2324
 data:
   mongodb-url: mongodb-service

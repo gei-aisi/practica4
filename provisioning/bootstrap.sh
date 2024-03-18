@@ -5,10 +5,6 @@ sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_c
 sed -i '/127.0.1.1/d' /etc/hosts >& /dev/null
 systemctl restart sshd
 
-# Repo config
-cp /vagrant/provisioning/sources.list /etc/apt
-apt-get update
-
 SSH_PUBLIC_KEY=/vagrant/provisioning/id_rsa.pub
 USER_DIR=/home/vagrant/.ssh
 

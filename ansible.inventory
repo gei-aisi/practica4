@@ -1,8 +1,8 @@
 [masters]
-xxx-aisi2223-k8s-master
+xxx2324-k8s-master
 [workers]
-xxx-aisi2223-k8s-worker-1
-xxx-aisi2223-k8s-worker-2
+xxx2324-k8s-worker1
+xxx2324-k8s-worker2
 # Group 'cluster' with all nodes
 [cluster:children]
 masters

@@ -1,5 +1,0 @@
-deb https://ftp.udc.es/ubuntu focal main restricted
-deb https://ftp.udc.es/ubuntu focal-updates main restricted
-deb https://ftp.udc.es/ubuntu focal-security main restricted
-deb https://ftp.udc.es/ubuntu focal universe
-deb https://ftp.udc.es/ubuntu focal-updates universe
