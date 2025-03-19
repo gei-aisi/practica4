@@ -1,12 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 require_relative 'provisioning/vbox.rb'
-VBoxUtils.check_version('7.0.14')
-Vagrant.require_version ">= 2.4.1"
+VBoxUtils.check_version('7.1.6')
+Vagrant.require_version ">= 2.4.3"
 
+STUDEN_PREFIX = "X"
 # Hostnames for master and worker nodes
-MASTER_HOSTNAME = "xxx2324-k8s-master"
-WORKER_HOSTNAME = "xxx2324-k8s-worker"
+MASTER_HOSTNAME = "#{STUDEN_PREFIX}-k8s-master"
+WORKER_HOSTNAME = "#{STUDEN_PREFIX}-k8s-worker"
 
 # Cluster settings
 MASTER_IP = "192.168.56.10"
@@ -24,7 +25,7 @@ CLUSTER_IP_ADDR = CLUSTER_IP_ADDR.succ
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
-  config.vm.box_version = "20240207.0.0"
+  config.vm.box_version = "20241002.0.0"
   config.vm.box_check_update = false
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
