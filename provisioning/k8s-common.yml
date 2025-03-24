@@ -98,6 +98,12 @@
         state: present
         filename: kubernetes
 
+    - name: Add br_netfilter module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
+        persistent: present
+ 
     - name: Install Kubernetes binaries
       ansible.builtin.apt: 
         name: "{{ packages }}"
