@@ -43,7 +43,7 @@
 
    - name: Pause before port-forwarding
      ansible.builtin.pause:
-       seconds: 5
+       seconds: 8
 
    - name: Port-forwarding
      become: false
