@@ -5,11 +5,15 @@
   tasks:
    - name: Add Helm repo for K8s dashboard
      become: false
-     ansible.builtin.shell: sleep 3 && helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+     ansible.builtin.shell: helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
      
    - name: Install K8s dashboard
      become: false
-     ansible.builtin.shell: sleep 5 && helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+     ansible.builtin.shell: helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+
+   - name: Pause to let dashboard to be deployed
+     ansible.builtin.pause:
+       seconds: 8
 
    - name: Copy manifest
      ansible.builtin.copy:
@@ -18,7 +22,7 @@
 
    - name: Configure dashboard
      become: false
-     ansible.builtin.shell: sleep 5 && kubectl apply -f /tmp/dashboard-adminuser.yml
+     ansible.builtin.shell: kubectl apply -f /tmp/dashboard-adminuser.yml
 
    - name: Generate token
      become: false
@@ -37,9 +41,13 @@
    - name: Copy token to local file
      local_action: copy content="{{ dashboard_token.stdout_lines[0] }}" dest="/vagrant/provisioning/token"
 
+   - name: Pause before port-forwarding
+     ansible.builtin.pause:
+       seconds: 5
+
    - name: Port-forwarding
      become: false
-     ansible.builtin.script: sleep 5 && /vagrant/provisioning/dashboard.sh
+     ansible.builtin.script: /vagrant/provisioning/dashboard.sh
      register: output
    
    - name: Print status
