@@ -50,6 +50,29 @@
       notify:
         - restart docker
 
+    - name: Copy containerd module file
+      ansible.builtin.copy:
+        src: containerd.conf
+        dest: /etc/modules-load.d/
+        owner: root
+        group: root
+
+    - name: Configure ip forwarding
+      ansible.builtin.copy:
+        src: 20-ip-forwarding.conf
+        dest: /etc/sysctl.d/
+        owner: root
+        group: root
+
+    - name: Add br_netfilter module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
+        persistent: present
+
+    - name: Apply kernel settings
+      ansible.builtin.shell: sysctl --system
+
     - name: Remove default containerd config file
       ansible.builtin.file:
         path: /etc/containerd/config.toml
@@ -65,7 +88,7 @@
         group: root
       notify:
         - restart containerd
-        
+
     - name: Add vagrant user to docker group
       ansible.builtin.user:
         name: vagrant
@@ -98,12 +121,6 @@
         state: present
         filename: kubernetes
 
-    - name: Add br_netfilter module
-      community.general.modprobe:
-        name: br_netfilter
-        state: present
-        persistent: present
- 
     - name: Install Kubernetes binaries
       ansible.builtin.apt: 
         name: "{{ packages }}"

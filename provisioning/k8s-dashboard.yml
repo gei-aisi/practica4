@@ -5,7 +5,7 @@
   tasks:
    - name: Add Helm repo for K8s dashboard
      become: false
-     ansible.builtin.shell: sleep 2 && helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+     ansible.builtin.shell: sleep 3 && helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
      
    - name: Install K8s dashboard
      become: false
@@ -39,7 +39,7 @@
 
    - name: Port-forwarding
      become: false
-     ansible.builtin.script: /vagrant/provisioning/dashboard.sh
+     ansible.builtin.script: sleep 5 && /vagrant/provisioning/dashboard.sh
      register: output
    
    - name: Print status

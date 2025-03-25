@@ -1,5 +1,10 @@
 #!/bin/bash
 
+apt install -y systemd-timesyncd
+systemctl unmask systemd-timesyncd
+systemctl enable systemd-timesyncd.service
+systemctl start systemd-timesyncd.service
+
 passwd -d root
 echo 'root:vagrant' | chpasswd -m
 passwd -d vagrant
