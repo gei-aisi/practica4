@@ -23,7 +23,7 @@ else
     if [[ ! -z "$PID" ]]; then
         echo PID=$PID
     else
-        echo "Port-forwarding failed"
+        echo "Port-forwarding failed!"
     fi
 fi
 
