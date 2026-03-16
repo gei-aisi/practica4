@@ -3,24 +3,24 @@ kind: Ingress
 metadata:
   name: ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.org/rewrites: "serviceName=apache-svc rewrite=/;serviceName=nginx-svc rewrite=/"
 spec:
   ingressClassName: nginx
   rules:
-  - host: X.k8s.es
+  - host: x.k8s.udc.es
     http:
       paths:
       - path: /apache
-        pathType: Exact
+        pathType: Prefix
         backend:
           service:
-            name: apache-service
+            name: apache-svc
             port:
               number: 9090
       - path: /nginx
-        pathType: Exact
+        pathType: Prefix
         backend:
           service:
-            name: nginx-service
+            name: nginx-svc
             port:
               number: 8080

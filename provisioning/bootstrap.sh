@@ -1,25 +1,23 @@
 #!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
 
-apt install -y systemd-timesyncd
+apt install -y -qq systemd-timesyncd
 systemctl unmask systemd-timesyncd
 systemctl enable systemd-timesyncd.service
-systemctl start systemd-timesyncd.service
+timedatectl set-ntp true
+systemctl restart systemd-timesyncd.service
 
-passwd -d root
-echo 'root:vagrant' | chpasswd -m
-passwd -d vagrant
-echo 'vagrant:vagrant' | chpasswd -m
-
-# SSH config
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-sed -i 's/#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
-sed -i 's/KbdInteractiveAuthentication no/KbdInteractiveAuthentication yes/' /etc/ssh/sshd_config
-sed -i 's/#KbdInteractiveAuthentication/KbdInteractiveAuthentication/' /etc/ssh/sshd_config
-sed -i '/127.0.1.1/d' /etc/hosts >& /dev/null
-systemctl restart sshd
+#Fix SSHD
+if ! grep -q "^Subsystem sftp internal-sftp" /etc/ssh/sshd_config; then
+    echo "Subsystem sftp internal-sftp" >> /etc/ssh/sshd_config
+    systemctl restart sshd
+fi
 
 SSH_PUBLIC_KEY=/vagrant/provisioning/id_rsa.pub
 USER_DIR=/home/vagrant/.ssh
+mkdir -p $USER_DIR
+chmod 700 $USER_DIR
 
 if [[ "$HOSTNAME" == *"-master" ]]; then
 	mkdir -p /etc/ansible
@@ -39,12 +37,7 @@ if [[ "$HOSTNAME" == *"-master" ]]; then
 	fi
 
 	chown vagrant:vagrant $USER_DIR/id_rsa*
-
-	if [ -f $SSH_PUBLIC_KEY ]; then
-		rm $SSH_PUBLIC_KEY >& /dev/null
-	fi
-
-	cp $USER_DIR/id_rsa.pub /vagrant/provisioning
+	cp $USER_DIR/id_rsa.pub $SSH_PUBLIC_KEY
 fi
 
 if [ ! -f $SSH_PUBLIC_KEY ]; then
@@ -52,8 +45,9 @@ if [ ! -f $SSH_PUBLIC_KEY ]; then
 	exit -1
 fi
 
-sed -i "/-aisi/d" $USER_DIR/authorized_keys >& /dev/null
-cat $SSH_PUBLIC_KEY >> $USER_DIR/authorized_keys
+touch $USER_DIR/authorized_keys 2>/dev/null
+sed -i '/127.0.1.1.*packer-/d' /etc/hosts 2>/dev/null
+sed -i '/127.0.2.1/d' /etc/hosts 2>/dev/null
+grep -q -f $SSH_PUBLIC_KEY $USER_DIR/authorized_keys || cat $SSH_PUBLIC_KEY >> $USER_DIR/authorized_keys
 chown vagrant:vagrant $USER_DIR/authorized_keys
 chmod 0600 $USER_DIR/authorized_keys
-

@@ -24,7 +24,7 @@
       
     - name: Install Calico
       become: false
-      ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+      ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.31.4/manifests/calico.yaml
     
     - name: Remove join command script
       ansible.builtin.file:
@@ -42,16 +42,24 @@
     - name: Copy join command to local file
       local_action: copy content="{{ kubernetes_join_command.stdout_lines[0] }}" dest="/vagrant/provisioning/join-command.sh"
 
-    - name: Add an apt signing key for Helm
-      ansible.builtin.apt_key:
-        url: https://baltocdn.com/helm/signing.asc
-        state: present
-         
-    - name: Add apt repository for Helm
-      ansible.builtin.apt_repository:
-        repo: deb [arch=amd64] https://baltocdn.com/helm/stable/debian/ all main
-        state: present
+    - name: Ensure /etc/apt/keyrings exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
 
+    - name: Download Helm signing key
+      ansible.builtin.get_url:
+        url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
+        dest: /etc/apt/keyrings/helm.gpg
+        mode: '0644'
+    
+    - name: Add Kubernetes apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
+        state: present
+        filename: helm
+        
     - name: Install Helm
       ansible.builtin.package:
         name: helm

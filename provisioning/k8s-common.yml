@@ -5,8 +5,6 @@
   vars:
     list_of_packages: 
       - ntp
-      - vim
-      - nano
       - sshpass
       - unzip
       - python3-apt
@@ -18,37 +16,13 @@
       - gpg
       - apt-transport-https
       - ca-certificates
-      - gnupg-agent
-      - software-properties-common
-      - docker-ce 
-      - docker-ce-cli 
-      - containerd.io
 
   tasks:
     - name: Add master IP to known_hosts file
       ansible.builtin.known_hosts:
         path: /home/vagrant/.ssh/ssh_known_hosts
         name: "{{ master_hostname }}"
-        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa {{ master_hostname }}') }}"
-
-    - name: Add an apt signing key for Docker
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-        keyring: /etc/apt/keyrings/docker.gpg
-
-    - name: Add apt repository for Docker stable version
-      ansible.builtin.apt_repository:
-        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
-        state: present
-
-    - name: Install Docker and other dependencies
-      ansible.builtin.apt:
-        name: "{{ list_of_packages }}"
-        state: latest
-        update_cache: true
-      notify:
-        - restart docker
+        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa ' ~ master_hostname) }}"
 
     - name: Copy containerd module file
       ansible.builtin.copy:
@@ -88,13 +62,6 @@
         group: root
       notify:
         - restart containerd
-
-    - name: Add vagrant user to docker group
-      ansible.builtin.user:
-        name: vagrant
-        group: docker
-      notify:
-        - restart docker
     
     - name: Remove swapfile from /etc/fstab
       ansible.builtin.mount:
@@ -107,20 +74,38 @@
 
     - name: Disable swap
       ansible.builtin.shell: swapoff -a
-      when: ansible_swaptotal_mb > 0
-      
-    - name: Add an apt signing key for Kubernetes
-      ansible.builtin.apt_key:
-        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
-        state: present
-        keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-    - name: Adding apt repository for Kubernetes
+    - name: BLock (mask) swap.target
+      ansible.builtin.systemd:
+        name: swap.target
+        masked: yes
+
+    - name: Re-execute systemd daemon
+      ansible.builtin.shell: systemctl daemon-reexec
+        
+    - name: Disable containerd
+      ansible.builtin.service:
+        name: containerd
+        state: restarted
+        
+    - name: Ensure /etc/apt/keyrings exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+    
+    - name: Download Kubernetes signing key
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key
+        dest: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        mode: '0644'
+    
+    - name: Add Kubernetes apt repository
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /"
         state: present
         filename: kubernetes
-
+    
     - name: Install Kubernetes binaries
       ansible.builtin.apt: 
         name: "{{ packages }}"
@@ -154,8 +139,7 @@
       shell: iptables -F && iptables -X && iptables -t nat -F && iptables -t nat -X && iptables -t mangle -F && iptables -t mangle -X
 
   handlers:
-    - name: restart docker
-      ansible.builtin.service: name=docker state=restarted
-
     - name: restart containerd
-      ansible.builtin.service: name=containerd state=restarted
+      ansible.builtin.service:
+        name: containerd
+        state: restarted
