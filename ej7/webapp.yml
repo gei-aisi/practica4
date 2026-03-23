@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: aisi
+  labels:
+    app: webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: ghcr.io/rreye/aisi-webapp:0.1.0
+        ports:
+        - containerPort: 9095
+        envFrom:
+        - configMapRef:
+            name: webapp-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: aisi
+spec:
+  type: LoadBalancer
+  selector:
+    app: webapp
+  ports:
+    - protocol: TCP
+      port: 
+      targetPort: 
